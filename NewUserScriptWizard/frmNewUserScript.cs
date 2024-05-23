@@ -1,3 +1,4 @@
+using Microsoft.VisualBasic.Devices;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using static NewUserScriptWizard.FrmNewUserScript;
@@ -57,7 +58,7 @@ namespace NewUserScriptWizard
                     this.LstFacilities.Items.Add(fac.facilityName);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK);
                 Application.Exit();
@@ -93,7 +94,8 @@ namespace NewUserScriptWizard
         }
         private string NewLine(string toAppend, string append, int numSpaces)
         {
-            for(int i = 0; i < numSpaces; i++) toAppend += append + Environment.NewLine;
+            toAppend += append;
+            for (int i = 0; i < numSpaces; i++) toAppend += Environment.NewLine;
             return toAppend;
         }
 
@@ -103,18 +105,26 @@ namespace NewUserScriptWizard
             string? facility = LstFacilities.SelectedItem.ToString();
             if (facility == null) return;
             string fileName = facility + "\\" + TxtUserName.Text.Replace(" ", "") + ".bat";
+
+            //Creates Script
             string createText = "";
             createText = NewLine(createText, "@echo off");
             createText = NewLine(createText, ":: New User Script ");
-            createText = NewLine(createText, ":: User = ");
-            createText = NewLine(createText, ":: Facility = ", 2);
+            createText = NewLine(createText, ":: User = " + TxtUserName.Text);
+            createText = NewLine(createText, ":: Facility = " + facility, 2);
             createText = NewLine(createText, "pushd \\\\enjet.local\\netlogon\\" + LstFacilities.SelectedItem + "\\");
             createText = NewLine(createText, "call _Variables.bat");
             createText = NewLine(createText, "popd", 2);
-
-            foreach (string drive in LstDrives.SelectedItems) createText += NewLine(createText, "%" + drive + "%");
+            createText = NewLine(createText, ":: Version control (If script version changes then it will rerun the script)");
+            createText = NewLine(createText, "FOR /F \"tokens=2* skip=2\" %%a in ('reg query \"HKCU\\Enjet\" /v \"Script_Version\"') do set CUR_VER=%%b");
+            createText = NewLine(createText, "if /i \"%CUR_VER%\"==\"%SCRIPT_VERSION%\" GOTO END", 2);
+            createText = NewLine(createText, ":START");
+            createText = NewLine(createText, "reg add \"HKCU\\Enjet\" /f /v \"Script_Version\" /t REG_SZ /d \"%SCRIPT_VERSION%\"");
+            foreach (string drive in LstDrives.SelectedItems) createText = NewLine(createText, "%" + drive + "%");
             createText = NewLine(createText, "");
-            foreach (string printer in LstPrinters.SelectedItems) createText += NewLine(createText, "%" + printer + "%");
+            foreach (string printer in LstPrinters.SelectedItems) createText = NewLine(createText, "%" + printer + "%");
+            createText = NewLine(createText, ":END");
+            //End Script
 
 
             try { if (!Directory.Exists(facility)) Directory.CreateDirectory(facility); }
@@ -123,8 +133,6 @@ namespace NewUserScriptWizard
             CreateFile(fileName, createText);
             MessageBox.Show("Script Saved To: " + fileName + Environment.NewLine + "Put this link into the user's Profile tab in AD.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             PowerShellHelper(TxtUserName.Text, fileName);
-            TxtUserName.Text = "";
-            LstFacilities.SelectedIndex = 0;
         }
 
         /// <summary>
@@ -146,7 +154,7 @@ namespace NewUserScriptWizard
                 Process.Start(startInfo);
             }
         }
-        
+
         /// <summary>
         /// Creates file with the filename "fileName" and text "createText"
         /// </summary>
@@ -201,6 +209,11 @@ namespace NewUserScriptWizard
                 LstPrinters.Enabled = false;
                 LstDrives.Enabled = false;
             }
+        }
+
+        private void KeyDownEvent(object sender, KeyEventArgs e)
+        {
+            if (e.Modifiers == Keys.Control && e.KeyCode == Keys.Enter) CreateScript();
         }
     }
 }

@@ -47,6 +47,7 @@
             LstFacilities.Size = new Size(150, 304);
             LstFacilities.TabIndex = 1;
             LstFacilities.SelectedIndexChanged += LstFacilities_SelectedIndexChanged;
+            LstFacilities.KeyDown += KeyDownEvent;
             // 
             // LstDrives
             // 
@@ -56,6 +57,7 @@
             LstDrives.SelectionMode = SelectionMode.MultiExtended;
             LstDrives.Size = new Size(150, 304);
             LstDrives.TabIndex = 2;
+            LstDrives.KeyDown += KeyDownEvent;
             // 
             // LstPrinters
             // 
@@ -65,6 +67,7 @@
             LstPrinters.SelectionMode = SelectionMode.MultiExtended;
             LstPrinters.Size = new Size(150, 304);
             LstPrinters.TabIndex = 3;
+            LstPrinters.KeyDown += KeyDownEvent;
             // 
             // TxtUserName
             // 
@@ -72,6 +75,7 @@
             TxtUserName.Name = "TxtUserName";
             TxtUserName.Size = new Size(150, 27);
             TxtUserName.TabIndex = 0;
+            TxtUserName.KeyDown += KeyDownEvent;
             // 
             // LblUserName
             // 
@@ -118,6 +122,7 @@
             BtnCreateScript.Text = "Create Script";
             BtnCreateScript.UseVisualStyleBackColor = true;
             BtnCreateScript.Click += BtnCreateScript_Click;
+            BtnCreateScript.KeyDown += KeyDownEvent;
             // 
             // FrmNewUserScript
             // 
@@ -135,6 +140,7 @@
             Controls.Add(LstFacilities);
             Name = "FrmNewUserScript";
             Text = "New User Script Wizard";
+            KeyDown += KeyDownEvent;
             ResumeLayout(false);
             PerformLayout();
         }
